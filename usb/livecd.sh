@@ -1,5 +1,9 @@
-#!/bin/sh
-# Author : Aditya Pramana (https://github.com/ojoakua-10bit)
+#!/bin/bash
+# Author: Aditya Pramana (https://github.com/ojoakua-10bit)
+# This script is intended to run on live CD or another linux installation
+
+# Abort script if something went wrong
+set -e
 
 # Some needed variables
 MOUNTPOINT="/mnt"
@@ -7,7 +11,7 @@ INFO="\033[36;1m"
 WARNING="\033[33;1m"
 ERROR="\033[31;1m"
 RESET="\033[0m"
-REPOLINK="https://github.com/ojoakua-10bit/archlinux-install-helper"
+REPO_NAME="ojoakua-10bit/archlinux-install-helper"
 
 # Make sure that the script is executed as superuser
 if [ $UID -ne 0 ]; then
@@ -40,7 +44,11 @@ if [ -z "$ROOTPART" ]; then
 fi
 
 echo -e "Please enter the custom root mountpoint (e.g /mnt/root, default /mnt):"
-read MOUNTPOINT
+read _MOUNTPOINT
+
+if [ -n "$_MOUNTPOINT" ]; then
+	MOUNTPOINT=$_MOUNTPOINT
+fi
 
 echo -e "Please enter the name of EFI partition (e.g sdb1):"
 read EFIPART
@@ -61,41 +69,19 @@ read VARPART
 
 echo -e "${INFO}Mounting devices...${RESET}"
 mount -v /dev/$ROOTPART $MOUNTPOINT
-if [ ! $? ] then
-	echo -e ${ERROR}ERROR: An error has occurred while mounting partitions. Exiting${RESET}
-	exit 1
-fi
-
 mkdir $MOUTPOINT/{efi,boot,home,var}
-
 mount -v /dev/$EFIPART $MOUNTPOINT/efi
-if [ ! $? ] then
-	echo -e ${ERROR}ERROR: An error has occurred while mounting partitions. Exiting${RESET}
-	exit 1
-fi
 
 if [ -n "$BOOTPART" ] then
 	mount -v /dev/$HOMEPART $MOUNTPOINT/boot
-	if [ ! $? ] then
-		echo -e ${ERROR}ERROR: An error has occurred while mounting partitions. Exiting${RESET}
-		exit 1
-	fi
 fi
 
 if [ -n "$HOMEPART" ] then
 	mount -v /dev/$HOMEPART $MOUNTPOINT/home
-	if [ ! $? ] then
-		echo -e ${ERROR}ERROR: An error has occurred while mounting partitions. Exiting${RESET}
-		exit 1
-	fi
 fi
 
 if [ -n "$VARPART" ] then
 	mount -v /dev/$VARPART $MOUNTPOINT/var
-	if [ ! $? ] then
-		echo -e ${ERROR}ERROR: An error has occurred while mounting partitions. Exiting${RESET}
-		exit 1
-	fi
 fi
 
 echo -e ${INFO}Configuring mirrors...${RESET}
@@ -107,10 +93,11 @@ pacstrap $MOUNTPOINT base base-devel grub2 git zsh neovim wget networkmanager in
 
 echo -e ${INFO}Generating /etc/fstab...${RESET}
 genfstab -U $MOUNTPOINT >> $MOUNTPOINT/etc/fstab
+# We don't need swap here...
+grep -Fv 'swap' /etc/fstab > tmp && mv tmp /etc/fstab
 
 echo -e ${INFO}Preparing chroot...${RESET}
-pacman -S wget --noconfirm
-wget $REPO_LINK/raw/master/USB/chroot.sh -O $MOUNTPOINT/.chroot-install
+curl -sSL https://raw.githubusercontent.com/$REPO_NAME/master/usb/chroot.sh -O $MOUNTPOINT/.chroot-install
 
 echo -e ${INFO}Entering chroot...${RESET}
 arch-chroot $MOUNTPOINT sh -c /.chroot-install
