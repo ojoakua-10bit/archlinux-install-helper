@@ -11,7 +11,6 @@ INFO="\033[36;1m"
 WARNING="\033[33;1m"
 ERROR="\033[31;1m"
 RESET="\033[0m"
-REPOLINK="https://github.com/ojoakua-10bit/archlinux-install-helper"
 
 HOSTNAME="archlinux"
 USERNAME="arch"
@@ -99,8 +98,8 @@ case OPTS in
 		;;
 esac
 
-sed -i -r 's/# root ALL=\(ALL\) ALL/root ALL=\(ALL\) ALL/g' /etc/sudoers
-sed -i -r 's/# %wheel ALL=\(ALL\) ALL/%wheel ALL=\(ALL\) ALL/g' /etc/sudoers
+sed -i 's/# root ALL=(ALL) ALL/root ALL=(ALL) ALL/g' /etc/sudoers
+sed -i 's/# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/g' /etc/sudoers
 
 echo -e ${INFO}Configuring custom initramfs...${RESET}
 sed -i 's/MODULES=()/MODULES=(xhci_hcd xhci_pci usb_storage roles intel_xhci_usb_role_switch)/g' /etc/mkinitcpio.conf

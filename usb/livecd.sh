@@ -27,8 +27,7 @@ Read <link> for more information.
 
 EOF
 
-echo -ne "Are you sure to proceed? (y/N): "
-read CONFIRM
+read -p "Are you sure to proceed? (y/N): " CONFIRM
 
 if [ "$CONFIRM" -ne "y" -a "$CONFIRM" -ne "Y" ]; then
 	echo -e ${WARNING}Setup cancelled by user. Exiting...${RESET}
@@ -38,7 +37,7 @@ fi
 echo -e "Please enter the name of root partition (e.g sdb1):"
 read ROOTPART
 
-if [ -z "$ROOTPART" ]; then
+if [ -b /dev/"$ROOTPART" ]; then
 	echo -e ${ERROR}Invalid partition name.${RESET}
 	exit 1;
 fi
