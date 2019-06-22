@@ -23,8 +23,7 @@ fi
 
 # Most of these scripts are still hardcoded: locale, language.
 echo -e "${INFO}Setting up hostname...${RESET}"
-echo -ne "Enter the hostname (default=archlinux): "
-read _HOSTNAME
+read -p "Enter the hostname (default=archlinux): " _HOSTNAME
 
 if [ -n "$_HOSTNAME" ]; then
 	HOSTNAME=$_HOSTNAME
@@ -72,10 +71,10 @@ read OPTS
 echo -ne "Enter the username (default=arch): "
 read _USERNAME
 if [ -n $_USERNAME ]; then
-	$USERNAME=$_USERNAME
+	USERNAME=$_USERNAME
 fi
 
-case OPTS in
+case $OPTS in
 	2)
 		echo -e "${INFO}Password for 'root'...${RESET}"
 		passwd
@@ -108,7 +107,88 @@ mkinitcpio -p linux
 echo -e "${INFO}Refreshing packages...${RESET}"
 sed -i 's/#\[multilib]/\[multilib]/g' /etc/pacman.conf
 sed -i '/^#\[multilib]/{N;s/\n#/\n/}' /etc/pacman.conf
-pacman -Syyu
+pacman -Syyu --noconfirm
+
+echo -e "${INFO}Graphical environment...${RESET}"
+read -p "Install graphical environment? (Y/n): " 
+
+if [ "$CONFIRM" -eq "n" -o "$CONFIRM" -eq "N" ]; then
+	systemctl enable NetworkManager
+	echo "Done..."
+	exit 0
+fi
+
+echo -e "${INFO}Installing X server...${RESET}"
+pacman -S --noconfirm xorg xorg-xinit xorg-drivers
+
+echo '1. Xfce  2. Cinnamon  3. MATE  4. LXDE  (1-4, default=1): '
+read OPTS
+
+case $OPTS in
+	2)
+		pacman -S --noconfirm cinnamon gnome-terminal
+		;;
+	3)
+		pacman -S --noconfirm mate mate-terminal network-manager-applet
+		;;
+	4)
+		pacman -S --noconfirm lxde
+		pacman -R --noconfirm lxdm
+		;;
+	*)
+		pacman -S --noconfirm xfce4 network-manager-applet
+esac
+
+read -p "Install extra packages? (Y/n)"
+
+if [ "$CONFIRM" -ne "n" -a "$CONFIRM" -ne "N" ]; then
+	case $OPTS in
+		2)
+			pacman -S --noconfirm file-roller nemo-fileroller xed xreader eog gnome-mpv firefox
+			;;
+		3)
+			pacman -S --noconfirm mate-extra gnome-mpv firefox
+			;;
+		4)
+			pacman -S --noconfirm atril mpv firefox
+			;;
+		*)
+			pacman -S --noconfirm xfce4-goodies xarchiver xreader
+			;;
+	esac
+fi
+
+read -p "Install display manager (LightDM)? (Y/n) " CONFIRM
+
+if [ "$CONFIRM" -ne "n" -a "$CONFIRM" -ne "N" ]; then
+	case $OPTS in
+		2)
+			XINIT_CMD="cinnamon-session"
+			;;
+		3)
+			XINIT_CMD="mate-session"
+			;;
+		4)
+			XINIT_CMD="startlxde"
+			;;
+		*)
+			XINIT_CMD="startxfce4"
+			;;
+	esac
+	echo "exec $XINIT_CMD" >> /home/$USERNAME/.xinitrc
+	chown $USERNAME:$USERNAME /home/$USERNAME/.xinitrc
+
+	systemctl enable NetworkManager
+	echo "Done..."
+	exit 0
+fi
+
+echo -e "${INFO}Installing LightDM...${RESET}"
+pacman -S --noconfirm lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings
+
+echo -e "${INFO}Finishing install...${RESET}"
+systemctl enable lightdm
+systemctl enable NetworkManager
 
 echo "Done..."
 

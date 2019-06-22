@@ -88,7 +88,7 @@ pacman -S reflector --noconfirm
 reflector --latest 50 --protocol http --protocol https --sort rate --save /etc/pacman.d/mirrorlist
 
 echo -e ${INFO}Bootstrapping base install...${RESET}
-pacstrap $MOUNTPOINT base base-devel grub2 git zsh neovim wget networkmanager intel-ucode amd-ucode
+pacstrap $MOUNTPOINT base base-devel grub2 git zsh neovim wget networkmanager intel-ucode amd-ucode zip unzip
 
 echo -e ${INFO}Generating /etc/fstab...${RESET}
 genfstab -U $MOUNTPOINT >> $MOUNTPOINT/etc/fstab
