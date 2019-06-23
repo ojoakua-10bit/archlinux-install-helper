@@ -25,12 +25,11 @@ if [ ! -b "/dev/$USBPART" ]; then
 	exit 1;
 fi
 
-cat << EOF
-${WARNING}WARNING${RESET}: This process will ${BOLD}wipe${RESET} all of your data on your USB device.
-Make sure you've entered the correct device name of your USB.
-We will create a partition for BIOS, a partition for EFI and a partition for rootfs.
-${BOLD}Target device${RESET}: /dev/${USBPART}
-EOF
+echo -e "${WARNING}WARNING${RESET}: This process will ${BOLD}wipe${RESET} all of your data on your USB device."
+echo -e "Make sure you've entered the correct device name of your USB."
+echo -e "We will create a partition for BIOS, a partition for EFI and a partition for rootfs."
+echo -e "${BOLD}Target device${RESET}: /dev/${USBPART}"
+
 
 read -p "Are you sure to continue? (y/N): " PROMPT
 

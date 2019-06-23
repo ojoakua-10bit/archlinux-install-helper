@@ -37,7 +37,7 @@ fi
 echo -e "Please enter the name of root partition (e.g sdb1):"
 read ROOTPART
 
-if [ -b /dev/"$ROOTPART" ]; then
+if [ ! -b /dev/"$ROOTPART" ]; then
 	echo -e ${ERROR}Invalid partition name.${RESET}
 	exit 1;
 fi
@@ -67,19 +67,22 @@ echo -e "Please enter the name of partition for /var (e.g sdb1, empty if not ava
 read VARPART
 
 echo -e "${INFO}Mounting devices...${RESET}"
+set +e
 mount -v /dev/$ROOTPART $MOUNTPOINT
-mkdir $MOUTPOINT/{efi,boot,home,var}
+mkdir $MOUNTPOINT/{efi,boot,home,var}
+
+set -e
 mount -v /dev/$EFIPART $MOUNTPOINT/efi
 
-if [ -n "$BOOTPART" ] then
+if [ -n "$BOOTPART" ]; then
 	mount -v /dev/$HOMEPART $MOUNTPOINT/boot
 fi
 
-if [ -n "$HOMEPART" ] then
+if [ -n "$HOMEPART" ]; then
 	mount -v /dev/$HOMEPART $MOUNTPOINT/home
 fi
 
-if [ -n "$VARPART" ] then
+if [ -n "$VARPART" ]; then
 	mount -v /dev/$VARPART $MOUNTPOINT/var
 fi
 
